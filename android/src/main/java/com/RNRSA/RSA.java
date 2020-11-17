@@ -235,18 +235,13 @@ public class RSA {
     }
 
     private PublicKey pkcs1ToPublicKey(String publicKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        Reader keyReader = null;
-        try {
-            keyReader = new StringReader(publicKey);
-            PEMParser pemParser = new PEMParser(keyReader);
-            SubjectPublicKeyInfo subjectPublicKeyInfo = (SubjectPublicKeyInfo) pemParser.readObject();
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
-            return KeyFactory.getInstance("RSA").generatePublic(spec);
-               } finally {
-            if (keyReader != null) {
-                keyReader.close();
-            }
-        }
+        String finalPublicKey = publicKey
+                .replace("-----BEGIN RSA PUBLIC KEY-----", "")
+                .replace("-----END RSA PUBLIC KEY-----", "")
+                .replace("\n", "");
+        byte[] publicKeyBytes = Base64.decode(finalPublicKey.getBytes("UTF-8"), Base64.DEFAULT);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
+        return KeyFactory.getInstance("RSA").generatePublic(spec);
     }
 
     private PrivateKey pkcs1ToPrivateKey(byte[] pkcs1PrivateKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
